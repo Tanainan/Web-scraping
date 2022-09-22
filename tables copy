@@ -1,0 +1,38 @@
+from bs4 import BeautifulSoup
+import time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver import Chrome, ChromeOptions
+import pandas as pd
+from pandas import ExcelWriter
+
+import urllib3
+
+driver_path = '/Users/admin/Downloads/chromedriver'
+options = ChromeOptions()
+options.headless = True
+driver = Chrome(driver_path, options = options)
+driver.get('http://www.indexpr.moc.go.th/price_present/csi/stat/other/conyear.asp')
+time.sleep(2)
+tables = []
+df = pd.DataFrame()
+with pd.ExcelWriter("table.xlsx") as writer:
+
+    for i in range(1,11):
+        dropdown_menu = driver.find_element_by_name("select_detail")
+        select = Select(dropdown_menu)
+        select.select_by_index(i)
+        element_ENTER = driver.find_element_by_name("Submit")
+        element_ENTER.click()
+        time.sleep(7)
+        page_source = driver.page_source
+        table = pd.read_html(page_source)
+        df = pd.concat(table)
+        df.to_excel(writer, sheet_name= f'sheet{i}', index = False)
+
+    driver.quit()
